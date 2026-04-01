@@ -108,7 +108,7 @@ export default function HomePage() {
             className="mt-10 flex flex-col sm:flex-row gap-3 justify-center"
           >
             <a
-              href="#"
+              href="#booking"
               className="inline-flex items-center justify-center gap-2 bg-[#1A3A6B] text-white font-semibold text-base px-8 py-4 rounded-2xl shadow-lg shadow-[#1A3A6B]/30 hover:bg-[#142d55] hover:shadow-xl transition-all duration-200 active:scale-95"
             >
               <Sparkles size={18} />
@@ -259,7 +259,7 @@ export default function HomePage() {
             평균 응답 시간 15분 이내 · 부담 없이 비교만 해도 OK
           </p>
           <a
-            href="#"
+            href="#booking"
             className="mt-8 inline-flex items-center gap-2 bg-[#38BDF8] text-[#0F1F3D] font-bold text-base px-9 py-4 rounded-2xl hover:bg-[#7DD3FA] transition-colors duration-200 shadow-lg shadow-[#38BDF8]/30 active:scale-95"
           >
             <Phone size={18} />
