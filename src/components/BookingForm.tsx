@@ -459,6 +459,7 @@ function validateStep3(name: string, phone: string, address: string) {
 
 // ── 메인 BookingForm ──────────────────────────────────────
 export default function BookingForm() {
+  const formRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [done, setDone] = useState(false);
@@ -479,6 +480,10 @@ export default function BookingForm() {
     phone: "",
     address: "",
   });
+
+  useEffect(() => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
 
   const update = useCallback(
     <K extends keyof FormData>(key: K, value: FormData[K]) => {
@@ -571,7 +576,7 @@ export default function BookingForm() {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl shadow-[#1A3A6B]/10 border border-slate-100 overflow-hidden max-w-md w-full mx-auto">
+    <div ref={formRef} className="bg-white rounded-3xl shadow-2xl shadow-[#1A3A6B]/10 border border-slate-100 overflow-hidden max-w-md w-full mx-auto">
       {/* 상단 헤더 */}
       {!done && (
         <div className="bg-gradient-to-r from-[#1A3A6B] to-[#2563EB] px-6 py-5">
