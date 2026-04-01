@@ -67,7 +67,7 @@ const badges = [
 // ── 컴포넌트 ──────────────────────────────────────────────
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white font-sans antialiased">
+    <main className="min-h-screen bg-white font-sans antialiased scroll-smooth [scroll-padding-top:80px]">
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">

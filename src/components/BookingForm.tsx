@@ -484,7 +484,9 @@ export default function BookingForm() {
   useEffect(() => {
     if (!formRef.current) return;
     const timer = setTimeout(() => {
-      const top = formRef.current!.getBoundingClientRect().top + window.scrollY - 16;
+      const HEADER_HEIGHT = 64; // sticky header h-16
+      const GAP = 16;
+      const top = formRef.current!.getBoundingClientRect().top + window.scrollY - HEADER_HEIGHT - GAP;
       window.scrollTo({ top, behavior: "smooth" });
     }, 50);
     return () => clearTimeout(timer);
