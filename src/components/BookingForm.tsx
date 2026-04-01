@@ -271,7 +271,8 @@ function Step2({
             step={1}
             value={size}
             onChange={(e) => onSize(Number(e.target.value))}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-[#1A3A6B]"
+            style={{ "--progress": ((size - 10) / 90) * 100 } as React.CSSProperties}
+            className="size-slider w-full cursor-pointer"
           />
           <div className="flex justify-between text-xs text-slate-400 mt-1">
             <span>10평</span>
