@@ -549,6 +549,7 @@ export default function BookingForm() {
         return;
       }
 
+      scrollToForm();
       setDone(true);
       fireConfetti();
       return;
