@@ -550,9 +550,9 @@ export default function BookingForm() {
         return;
       }
 
-      scrollToForm();
       setDone(true);
       fireConfetti();
+      setTimeout(() => scrollToForm(), 50);
       return;
     }
 
