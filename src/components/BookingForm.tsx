@@ -482,7 +482,12 @@ export default function BookingForm() {
   });
 
   useEffect(() => {
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!formRef.current) return;
+    const timer = setTimeout(() => {
+      const top = formRef.current!.getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 50);
+    return () => clearTimeout(timer);
   }, [step]);
 
   const update = useCallback(
