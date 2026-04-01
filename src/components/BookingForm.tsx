@@ -481,16 +481,11 @@ export default function BookingForm() {
     address: "",
   });
 
-  useEffect(() => {
+  const scrollToForm = () => {
     if (!formRef.current) return;
-    const timer = setTimeout(() => {
-      const HEADER_HEIGHT = 64; // sticky header h-16
-      const GAP = 16;
-      const top = formRef.current!.getBoundingClientRect().top + window.scrollY - HEADER_HEIGHT - GAP;
-      window.scrollTo({ top, behavior: "smooth" });
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [step]);
+    const top = formRef.current.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   const update = useCallback(
     <K extends keyof FormData>(key: K, value: FormData[K]) => {
@@ -521,6 +516,7 @@ export default function BookingForm() {
         setDateError("희망 날짜를 선택해주세요.");
         return;
       }
+      scrollToForm();
       setDir(1);
       setStep((s) => s + 1);
       return;
@@ -559,11 +555,13 @@ export default function BookingForm() {
     }
 
     // Step 0 → 1
+    scrollToForm();
     setDir(1);
     setStep((s) => s + 1);
   };
 
   const goPrev = () => {
+    scrollToForm();
     setDir(-1);
     setFieldErrors({});
     setDateError("");
