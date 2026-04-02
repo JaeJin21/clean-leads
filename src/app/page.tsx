@@ -1,12 +1,10 @@
 import {
   ArrowRight,
   Star,
-  CheckCircle2,
   ClipboardList,
   Users,
   BadgeCheck,
   Phone,
-  Shield,
   Sparkles,
 } from "lucide-react";
 import BookingForm from "@/components/BookingForm";
@@ -58,10 +56,7 @@ const reviews = [
 ];
 
 const badges = [
-  { icon: Shield, label: "보험 가입 업체 인증" },
-  { icon: Star, label: "평균 만족도 4.9점" },
-  { icon: CheckCircle2, label: "누적 매칭 12,000건+" },
-  { icon: Sparkles, label: "100% 무료 견적 비교" },
+  { icon: Star, label: "만족도 4.9점을 목표로 꼼꼼하게 관리합니다" },
 ];
 
 // ── 컴포넌트 ──────────────────────────────────────────────
@@ -148,7 +143,7 @@ export default function HomePage() {
               30초 만에 무료 견적 신청
             </h2>
             <p className="mt-3 text-slate-500 text-sm">
-              지금 신청하면 <span className="text-[#1A3A6B] font-semibold">2만원 할인 쿠폰</span>을 즉시 드려요.
+              업체 매칭 시 <span className="text-[#1A3A6B] font-semibold">첫 예약 1만원 할인</span> 혜택 제공
             </p>
           </div>
           <BookingForm />

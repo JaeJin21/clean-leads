@@ -7,7 +7,6 @@ import {
   Building2,
   Sofa,
   LogOut,
-  BedSingle,
   Sparkles,
   HelpCircle,
   ChevronRight,
@@ -26,7 +25,7 @@ import confetti from "canvas-confetti";
 import { insertLead } from "@/lib/leads";
 
 // ── 타입 ─────────────────────────────────────────────────
-type CleanType = "입주청소" | "퇴거청소" | "거주청소" | "원룸청소" | "사무실청소" | "특수청소" | "기타청소" | null;
+type CleanType = "입주청소" | "퇴거청소" | "거주청소" | "사무실청소" | "특수청소" | "기타청소" | null;
 
 interface FormData {
   cleanType: CleanType;
@@ -68,16 +67,6 @@ const CLEAN_TYPES = [
     bg: "bg-sky-50",
     border: "border-sky-300",
     text: "text-sky-600",
-  },
-  {
-    id: "원룸청소" as CleanType,
-    icon: BedSingle,
-    label: "원룸청소",
-    desc: "원룸·투룸 맞춤 청소",
-    color: "from-teal-400 to-teal-500",
-    bg: "bg-teal-50",
-    border: "border-teal-300",
-    text: "text-teal-600",
   },
   {
     id: "사무실청소" as CleanType,
@@ -429,7 +418,7 @@ function DoneScreen({ onReset }: { onReset: () => void }) {
         맞춤 견적을 보내드릴게요.
       </p>
       <p className="text-xs text-[#38BDF8] font-semibold mb-6">
-        🎁 2만원 할인 쿠폰이 문자로 발송됩니다.
+        🎁 업체 매칭 시 첫 예약 1만원 할인 혜택이 제공됩니다.
       </p>
       <button
         onClick={onReset}
@@ -716,7 +705,7 @@ export default function BookingForm() {
                 ) : step === 2 ? (
                   <>
                     <Gift size={17} />
-                    무료 견적 신청하고 2만원 할인받기
+                    무료 견적 신청하고 1만원 할인받기
                   </>
                 ) : (
                   <>
