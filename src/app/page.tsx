@@ -31,30 +31,6 @@ const steps = [
   },
 ];
 
-const reviews = [
-  {
-    name: "김지수",
-    location: "서울 마포구",
-    rating: 5,
-    text: "이사 후 입주청소를 맡겼는데 정말 깨끗하게 해주셨어요. 3곳 견적을 한 번에 받아서 비교하니 훨씬 편했어요!",
-    service: "입주 청소",
-  },
-  {
-    name: "박민준",
-    location: "경기 성남시",
-    rating: 5,
-    text: "에어컨 청소를 맡겼는데 가격이 합리적이고 작업이 꼼꼼했어요. 다음에도 무조건 여기서 신청할 거예요.",
-    service: "에어컨 청소",
-  },
-  {
-    name: "이수빈",
-    location: "부산 해운대구",
-    rating: 5,
-    text: "사무실 정기 청소 업체를 찾고 있었는데 딱 맞는 곳을 연결해줬어요. 직원들 만족도도 높아졌어요.",
-    service: "사무실 청소",
-  },
-];
-
 const badges = [
   { icon: Star, label: "만족도 4.9점을 목표로 꼼꼼하게 관리합니다" },
 ];
@@ -178,64 +154,6 @@ export default function HomePage() {
                   {title}
                 </h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Reviews ── */}
-      <section className="py-24 px-6 bg-gradient-to-b from-[#F0F8FF] to-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-[#38BDF8] uppercase tracking-widest mb-2">
-              Real Reviews
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F1F3D]">
-              실제 이용 고객 후기
-            </h2>
-            <p className="mt-3 text-slate-500 text-sm">
-              12,000명이 넘는 고객이 청소매칭을 통해 전문가를 만났어요.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {reviews.map((r) => (
-              <div
-                key={r.name}
-                className="bg-white border border-slate-100 rounded-2xl p-7 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
-              >
-                {/* 별점 */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={15}
-                      className="fill-amber-400 text-amber-400"
-                    />
-                  ))}
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed mb-5">
-                  &ldquo;{r.text}&rdquo;
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#1A3A6B] flex items-center justify-center text-white text-xs font-bold">
-                      {r.name[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#0F1F3D]">
-                        {r.name}
-                      </p>
-                      <p className="text-xs text-slate-400">{r.location}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-[#38BDF8] font-medium bg-[#EBF4FF] px-2.5 py-1 rounded-full">
-                    {r.service}
-                  </span>
-                </div>
               </div>
             ))}
           </div>
