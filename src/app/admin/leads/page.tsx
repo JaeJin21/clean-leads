@@ -80,8 +80,11 @@ function LoginGate({ onSuccess }: { onSuccess: (pw: string) => void }) {
   const [pw, setPw] = useState("");
   const [error, setError] = useState(false);
 
-  const submit = () => {
-    if (pw === "wols") {
+  const submit = async () => {
+    const res = await fetch("/api/admin/leads", {
+      headers: { "x-admin-token": pw },
+    });
+    if (res.ok) {
       onSuccess(pw);
     } else {
       setError(true);
