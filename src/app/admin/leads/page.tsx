@@ -13,6 +13,7 @@ import {
   Tag,
   CheckCircle2,
   Clock,
+  Trash2,
 } from "lucide-react";
 
 // ── 타입 ──────────────────────────────────────────────────
@@ -80,7 +81,7 @@ function LoginGate({ onSuccess }: { onSuccess: (pw: string) => void }) {
   const [error, setError] = useState(false);
 
   const submit = () => {
-    if (pw === "1234") {
+    if (pw === "wols") {
       onSuccess(pw);
     } else {
       setError(true);
@@ -125,12 +126,15 @@ function LeadCard({
   lead,
   token,
   onUpdate,
+  onDelete,
 }: {
   lead: Lead;
   token: string;
   onUpdate: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
 }) {
   const [toggling, setToggling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const isMatched = lead.status === "matched";
 
   const toggle = async () => {
@@ -143,6 +147,17 @@ function LeadCard({
     });
     onUpdate(lead.id, nextStatus);
     setToggling(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`"${lead.name}" 리드를 삭제할까요?`)) return;
+    setDeleting(true);
+    await fetch("/api/admin/leads", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", "x-admin-token": token },
+      body: JSON.stringify({ id: lead.id }),
+    });
+    onDelete(lead.id);
   };
 
   return (
@@ -201,21 +216,31 @@ function LeadCard({
         </div>
       </div>
 
-      {/* 카드 푸터: 업체 전송 토글 */}
+      {/* 카드 푸터: 업체 전송 토글 + 삭제 */}
       <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-        <span className="text-xs font-medium text-slate-500">업체 전송 완료</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-slate-500">업체 전송 완료</span>
+          <button
+            onClick={toggle}
+            disabled={toggling}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+              isMatched ? "bg-emerald-500" : "bg-slate-200"
+            } ${toggling ? "opacity-60" : ""}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                isMatched ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
         <button
-          onClick={toggle}
-          disabled={toggling}
-          className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
-            isMatched ? "bg-emerald-500" : "bg-slate-200"
-          } ${toggling ? "opacity-60" : ""}`}
+          onClick={handleDelete}
+          disabled={deleting}
+          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
         >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-              isMatched ? "translate-x-5" : "translate-x-0"
-            }`}
-          />
+          <Trash2 size={13} />
+          삭제
         </button>
       </div>
     </div>
@@ -248,6 +273,10 @@ export default function AdminLeadsPage() {
 
   const handleUpdate = (id: string, status: string) => {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+  };
+
+  const handleDelete = (id: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== id));
   };
 
   // 30초마다 자동 새로고침
@@ -330,7 +359,7 @@ export default function AdminLeadsPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {leads.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} token={token} onUpdate={handleUpdate} />
+              <LeadCard key={lead.id} lead={lead} token={token} onUpdate={handleUpdate} onDelete={handleDelete} />
             ))}
           </div>
         )}
