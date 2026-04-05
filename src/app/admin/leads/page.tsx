@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Lock,
   RefreshCw,
@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Clock,
   Trash2,
+  BarChart2,
+  List,
 } from "lucide-react";
 
 // ── 타입 ──────────────────────────────────────────────────
@@ -27,10 +29,15 @@ interface Lead {
   date: string;
   status: string;
   created_at: string;
+  ref_channel: string | null;
 }
+
+type Tab = "leads" | "stats";
+type DateFilter = "today" | "week" | "month";
 
 // ── 상수 ──────────────────────────────────────────────────
 const REVENUE_PER_LEAD = 20000;
+const CONVERTED = new Set(["matched", "completed"]);
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "대기 중",
@@ -48,6 +55,12 @@ const SERVICE_COLOR: Record<string, string> = {
   특수청소: "bg-orange-100 text-orange-700",
   기타청소: "bg-slate-100 text-slate-600",
 };
+
+const DATE_FILTERS: { key: DateFilter; label: string }[] = [
+  { key: "today", label: "오늘" },
+  { key: "week", label: "이번 주" },
+  { key: "month", label: "이번 달" },
+];
 
 // ── 헬퍼 ──────────────────────────────────────────────────
 function isToday(dateStr: string) {
@@ -73,6 +86,21 @@ function fmt(dateStr: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function getRangeStart(filter: DateFilter): Date {
+  const now = new Date();
+  if (filter === "today") {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+  if (filter === "week") {
+    const diff = now.getDay() === 0 ? 6 : now.getDay() - 1; // 월요일 기준
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
 // ── 비밀번호 화면 ──────────────────────────────────────────
@@ -167,7 +195,6 @@ function LeadCard({
     <div className={`bg-white rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md ${
       isMatched ? "border-emerald-200" : "border-slate-100"
     }`}>
-      {/* 카드 헤더 */}
       <div className={`flex items-center justify-between px-5 py-3 rounded-t-2xl ${
         isMatched ? "bg-emerald-50" : "bg-slate-50"
       }`}>
@@ -183,9 +210,7 @@ function LeadCard({
         <span className="text-xs text-slate-400">{fmt(lead.created_at)}</span>
       </div>
 
-      {/* 카드 바디 */}
       <div className="px-5 py-4 space-y-2.5">
-        {/* 서비스 종류 + 평수 */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
             SERVICE_COLOR[lead.service_type] ?? "bg-slate-100 text-slate-600"
@@ -200,9 +225,13 @@ function LeadCard({
             <CalendarDays size={12} className="text-[#38BDF8]" />
             {new Date(lead.date).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}
           </span>
+          {lead.ref_channel && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              {lead.ref_channel}
+            </span>
+          )}
         </div>
 
-        {/* 고객 정보 */}
         <div className="space-y-1.5">
           <p className="flex items-center gap-2 text-sm text-[#0F1F3D] font-semibold">
             <User size={13} className="text-slate-400 flex-shrink-0" />
@@ -219,7 +248,6 @@ function LeadCard({
         </div>
       </div>
 
-      {/* 카드 푸터: 업체 전송 토글 + 삭제 */}
       <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
         <div className="flex items-center gap-3">
           <span className="text-xs font-medium text-slate-500">업체 전송 완료</span>
@@ -250,12 +278,153 @@ function LeadCard({
   );
 }
 
+// ── 채널 분석 탭 ──────────────────────────────────────────
+function StatsTab({ leads }: { leads: Lead[] }) {
+  const [dateFilter, setDateFilter] = useState<DateFilter>("month");
+
+  const tableData = useMemo(() => {
+    const rangeStart = getRangeStart(dateFilter);
+    const filtered = leads.filter((l) => new Date(l.created_at) >= rangeStart);
+
+    const map = new Map<string, { total: number; converted: number }>();
+    for (const l of filtered) {
+      const ch = l.ref_channel ?? "direct";
+      if (!map.has(ch)) map.set(ch, { total: 0, converted: 0 });
+      const entry = map.get(ch)!;
+      entry.total += 1;
+      if (CONVERTED.has(l.status)) entry.converted += 1;
+    }
+
+    return Array.from(map.entries())
+      .map(([channel, { total, converted }]) => ({
+        channel,
+        total,
+        converted,
+        rate: total > 0 ? Math.round((converted / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [leads, dateFilter]);
+
+  const grandTotal = tableData.reduce((s, r) => s + r.total, 0);
+  const grandConverted = tableData.reduce((s, r) => s + r.converted, 0);
+  const grandRate = grandTotal > 0 ? Math.round((grandConverted / grandTotal) * 100) : 0;
+
+  return (
+    <div>
+      {/* 날짜 필터 */}
+      <div className="flex gap-2 mb-6">
+        {DATE_FILTERS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setDateFilter(key)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              dateFilter === key
+                ? "bg-[#1A3A6B] text-white shadow-md"
+                : "bg-white text-slate-500 border border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* 테이블 */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                채널
+              </th>
+              <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                총 유입수
+              </th>
+              <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                전환(리드) 수
+              </th>
+              <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                전환율
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-16 text-slate-400 text-sm">
+                  해당 기간에 데이터가 없습니다.
+                </td>
+              </tr>
+            ) : (
+              tableData.map((row, i) => (
+                <tr
+                  key={row.channel}
+                  className={`hover:bg-slate-50 transition-colors ${
+                    i < tableData.length - 1 ? "border-b border-slate-50" : ""
+                  }`}
+                >
+                  <td className="px-5 py-4">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#38BDF8] flex-shrink-0" />
+                      <span className="font-semibold text-[#0F1F3D]">{row.channel}</span>
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-right font-medium text-slate-700">
+                    {row.total.toLocaleString()}
+                  </td>
+                  <td className="px-5 py-4 text-right font-medium text-emerald-600">
+                    {row.converted.toLocaleString()}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        row.rate >= 50
+                          ? "bg-emerald-100 text-emerald-700"
+                          : row.rate >= 20
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {row.rate}%
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {tableData.length > 0 && (
+            <tfoot>
+              <tr className="bg-slate-50 border-t border-slate-200">
+                <td className="px-5 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                  합계
+                </td>
+                <td className="px-5 py-3.5 text-right font-bold text-[#0F1F3D]">
+                  {grandTotal.toLocaleString()}
+                </td>
+                <td className="px-5 py-3.5 text-right font-bold text-emerald-600">
+                  {grandConverted.toLocaleString()}
+                </td>
+                <td className="px-5 py-3.5 text-right text-xs font-bold text-slate-600">
+                  {grandRate}%
+                </td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+      <p className="text-xs text-slate-400 mt-3 text-center">
+        전환 기준: 업체 전송 완료(matched) 또는 완료(completed) 상태
+      </p>
+    </div>
+  );
+}
+
 // ── 메인 어드민 페이지 ────────────────────────────────────
 export default function AdminLeadsPage() {
   const [token, setToken] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [tab, setTab] = useState<Tab>("leads");
 
   const fetchLeads = useCallback(async (pw: string) => {
     setLoading(true);
@@ -282,7 +451,6 @@ export default function AdminLeadsPage() {
     setLeads((prev) => prev.filter((l) => l.id !== id));
   };
 
-  // 30초마다 자동 새로고침
   useEffect(() => {
     if (!token) return;
     const id = setInterval(() => fetchLeads(token), 30000);
@@ -291,7 +459,6 @@ export default function AdminLeadsPage() {
 
   if (!token) return <LoginGate onSuccess={handleLogin} />;
 
-  // ── 통계 계산
   const todayLeads = leads.filter((l) => isToday(l.created_at));
   const monthMatched = leads.filter(
     (l) => isThisMonth(l.created_at) && l.status === "matched"
@@ -347,24 +514,52 @@ export default function AdminLeadsPage() {
           </div>
         </div>
 
-        {/* 리드 목록 */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold text-[#0F1F3D]">
-            전체 리드
-            <span className="ml-2 text-slate-400 font-normal">{leads.length}건</span>
-          </h2>
+        {/* 탭 */}
+        <div className="flex gap-1 mb-6 bg-white border border-slate-100 rounded-2xl p-1 shadow-sm w-fit">
+          <button
+            onClick={() => setTab("leads")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              tab === "leads"
+                ? "bg-[#1A3A6B] text-white shadow"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <List size={15} />
+            리드 목록
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+              tab === "leads" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+            }`}>
+              {leads.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setTab("stats")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              tab === "stats"
+                ? "bg-[#1A3A6B] text-white shadow"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <BarChart2 size={15} />
+            채널 분석
+          </button>
         </div>
 
-        {loading && leads.length === 0 ? (
-          <div className="text-center py-20 text-slate-400 text-sm">불러오는 중...</div>
-        ) : leads.length === 0 ? (
-          <div className="text-center py-20 text-slate-400 text-sm">아직 리드가 없습니다.</div>
+        {/* 탭 콘텐츠 */}
+        {tab === "leads" ? (
+          loading && leads.length === 0 ? (
+            <div className="text-center py-20 text-slate-400 text-sm">불러오는 중...</div>
+          ) : leads.length === 0 ? (
+            <div className="text-center py-20 text-slate-400 text-sm">아직 리드가 없습니다.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {leads.map((lead) => (
+                <LeadCard key={lead.id} lead={lead} token={token} onUpdate={handleUpdate} onDelete={handleDelete} />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {leads.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} token={token} onUpdate={handleUpdate} onDelete={handleDelete} />
-            ))}
-          </div>
+          <StatsTab leads={leads} />
         )}
       </main>
     </div>

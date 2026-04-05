@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
@@ -454,6 +454,11 @@ export default function BookingForm() {
   const [dir, setDir] = useState(1);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [refChannel, setRefChannel] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRefChannel(localStorage.getItem("ref_channel"));
+  }, []);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
@@ -530,6 +535,7 @@ export default function BookingForm() {
         service_type: formData.cleanType!,
         size: formData.size,
         date: formData.date,
+        ref_channel: refChannel ?? "direct",
       });
 
       setLoading(false);

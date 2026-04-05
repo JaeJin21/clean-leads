@@ -43,3 +43,13 @@ comment on table  public.leads               is '청소 업체 매칭 리드';
 comment on column public.leads.service_type  is '청소 종류: 입주청소 | 거주청소 | 사무실청소';
 comment on column public.leads.size          is '평수 (정수)';
 comment on column public.leads.status        is '리드 상태: pending | matched | completed | cancelled';
+
+-- ============================================================
+--  Migration: ref_channel 컬럼 추가
+--  기존 테이블에 적용할 경우 아래 ALTER TABLE을 실행하세요.
+-- ============================================================
+
+alter table public.leads
+  add column if not exists ref_channel text;   -- 유입 채널: blog | threads | daangn | direct | x | null
+
+comment on column public.leads.ref_channel is '유입 채널: blog | threads | daangn | direct | x';

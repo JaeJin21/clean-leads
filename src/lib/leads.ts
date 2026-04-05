@@ -7,6 +7,7 @@ export interface LeadPayload {
   service_type: string;
   size: number;
   date: string; // YYYY-MM-DD
+  ref_channel?: string | null;
 }
 
 export interface InsertLeadResult {
@@ -29,6 +30,7 @@ export async function insertLead(payload: LeadPayload): Promise<InsertLeadResult
       size: payload.size,
       date: payload.date,
       status: "pending",
+      ref_channel: payload.ref_channel ?? null,
     });
 
     if (error) {
